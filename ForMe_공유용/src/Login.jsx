@@ -53,7 +53,7 @@ const Login = ({ onLogin }) => {
     return (
       <div className="login-container">
         <div className="login-box">
-          <h1>Secret Diary</h1>
+          <h1>For Me</h1>
           <p>관리자 코드를 입력하세요.</p>
           <form onSubmit={handleManagerSubmit}>
             <input
@@ -87,7 +87,7 @@ const Login = ({ onLogin }) => {
   return (
     <div className="login-container">
       <div className="login-box">
-        <h1>Secret Diary</h1>
+        <h1>For Me</h1>
         <p>당신의 이름을 알려주세요.</p>
         <form onSubmit={handleSubmit}>
           <input
