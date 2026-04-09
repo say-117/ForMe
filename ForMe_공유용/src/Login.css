@@ -1,0 +1,53 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 320px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  background: #4facfe;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.login-box h1 {
+  margin-bottom: 10px;
+  color: #4facfe; /* 버튼과 같은 예쁜 파란색 */
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.login-box p {
+  color: #666; /* 설명 문구는 진한 회색으로 */
+  font-size: 14px;
+  margin-bottom: 20px;
+}
