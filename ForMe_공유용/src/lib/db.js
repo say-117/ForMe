@@ -161,3 +161,44 @@ export async function getAllUsers() {
 export async function getEntriesForUser(userId) {
   return getAllDiaryEntries(userId)
 }
+
+// ============================================================
+// WEEKLY INSIGHTS
+// ============================================================
+
+// 특정 유저의 특정 주 인사이트 가져오기
+export async function getWeeklyInsight(userId, weekStart) {
+  const { data, error } = await supabase
+    .from('weekly_insights')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('week_start', weekStart)
+    .maybeSingle()
+  if (error) throw error
+  return data
+}
+
+// 특정 유저의 모든 주간 인사이트 가져오기
+export async function getAllWeeklyInsights(userId) {
+  const { data, error } = await supabase
+    .from('weekly_insights')
+    .select('*')
+    .eq('user_id', userId)
+    .order('week_start', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+// 관리자가 주간 인사이트 저장/수정
+export async function upsertWeeklyInsight(userId, weekStart, insight, managerId) {
+  const { data, error } = await supabase
+    .from('weekly_insights')
+    .upsert(
+      { user_id: userId, week_start: weekStart, insight, created_by: managerId },
+      { onConflict: 'user_id,week_start' }
+    )
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}

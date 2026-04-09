@@ -1,5 +1,7 @@
+//ManagerDashboardjsx 코드
 import React, { useState, useEffect } from 'react';
-import { getAllUsers, getEntriesForUser } from './lib/db';
+// 기존 import 줄 수정
+import { getAllUsers, getEntriesForUser, getAllWeeklyInsights, upsertWeeklyInsight } from './lib/db';
 
 const card = {
   background: '#fff',
@@ -17,6 +19,10 @@ const ManagerDashboard = ({ userProfile, onLogout }) => {
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [insights, setInsights] = useState([]);         // 기존 주간 인사이트 목록
+  const [newInsightWeek, setNewInsightWeek] = useState('');  // 입력할 주 선택
+  const [newInsightText, setNewInsightText] = useState('');  // 입력할 인사이트 텍스트
+  const [insightSaving, setInsightSaving] = useState(false);
 
   useEffect(() => {
     getAllUsers()
@@ -28,9 +34,13 @@ const ManagerDashboard = ({ userProfile, onLogout }) => {
   const openUserDiary = async (u) => {
     setLoading(true);
     try {
-      const data = await getEntriesForUser(u.id);
+      const [data, insightData] = await Promise.all([
+        getEntriesForUser(u.id),
+        getAllWeeklyInsights(u.id)
+      ]);
       setSelectedUser(u);
       setEntries(data);
+      setInsights(insightData);
       setView('diary');
     } catch (err) {
       setError(err.message);
@@ -38,6 +48,29 @@ const ManagerDashboard = ({ userProfile, onLogout }) => {
       setLoading(false);
     }
   };
+
+  const handleSaveInsight = async () => {
+  if (!newInsightWeek || !newInsightText.trim()) return;
+  setInsightSaving(true);
+  try {
+    const saved = await upsertWeeklyInsight(
+      selectedUser.id,
+      newInsightWeek,
+      newInsightText.trim(),
+      userProfile.id
+    );
+    setInsights(prev => {
+      const filtered = prev.filter(i => i.week_start !== saved.week_start);
+      return [saved, ...filtered].sort((a, b) => b.week_start.localeCompare(a.week_start));
+    });
+    setNewInsightText('');
+    setNewInsightWeek('');
+  } catch (err) {
+    alert('저장 오류: ' + err.message);
+  } finally {
+    setInsightSaving(false);
+  }
+};
 
   const openEntry = (entry) => {
     setSelectedEntry(entry);
@@ -200,6 +233,52 @@ const ManagerDashboard = ({ userProfile, onLogout }) => {
             <span>자주 느낀 감정: {mostEmotion}</span>
           </div>
         </div>
+
+        {/* 주간 인사이트 입력 */}
+        <div style={{ ...card, background: '#f0f4ff' }}>
+          <p style={{ fontWeight: 'bold', fontSize: '14px', color: '#6c5ce7', marginBottom: '10px' }}>
+            📝 주간 인사이트 관리
+          </p>
+
+          {/* 기존 인사이트 목록 */}
+          {insights.length > 0 && (
+            <div style={{ marginBottom: '12px' }}>
+              {insights.map(i => (
+                <div key={i.id} style={{ background: '#fff', padding: '10px', borderRadius: '8px', marginBottom: '6px', fontSize: '13px' }}>
+                  <span style={{ color: '#888', fontSize: '11px' }}>
+                    {i.week_start} 주
+                  </span>
+                  <p style={{ margin: '2px 0 0 0', color: '#333' }}>{i.insight}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 새 인사이트 입력 */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <input
+              type="date"
+              value={newInsightWeek}
+              onChange={e => setNewInsightWeek(e.target.value)}
+              style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px' }}
+            />
+            <textarea
+              placeholder="이번 주 인사이트를 입력하세요 (예: 이번 주는 감정 기복이 많았지만 꾸준히 기록한 주였어요)"
+              value={newInsightText}
+              onChange={e => setNewInsightText(e.target.value)}
+              style={{ padding: '8px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '13px', resize: 'none', height: '80px' }}
+            />
+            <button
+              onClick={handleSaveInsight}
+              disabled={insightSaving || !newInsightWeek || !newInsightText.trim()}
+              style={btnStyle(insightSaving ? '#aaa' : '#6c5ce7')}
+            >
+              {insightSaving ? '저장 중...' : '인사이트 저장'}
+            </button>
+          </div>
+        </div>
+
+        
 
         {/* Diary entries */}
         {entries.length === 0 ? (

@@ -1,3 +1,4 @@
+// DiaryMain.jsx 코드
 import React, { useState, useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
 import Calendar from 'react-calendar';
@@ -9,7 +10,8 @@ import {
   appendAnswer,
   getAllDiaryEntries,
   updatePetExp,
-  getRandomQuestionByRandomCategory
+  getRandomQuestionByRandomCategory,
+  getAllWeeklyInsights   // 이거 추가
 } from './lib/db';
 
 const initialTimeLine = {
@@ -54,6 +56,7 @@ const DiaryMain = ({ user, userProfile, onLogout }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isFirstSave, setIsFirstSave] = useState(false);
+  const [weeklyInsights, setWeeklyInsights] = useState([]);
 
   const dateKey = date.toLocaleDateString();
   const userName = userProfile.display_name;
@@ -124,8 +127,12 @@ const DiaryMain = ({ user, userProfile, onLogout }) => {
   const handleShowReport = async () => {
     setIsLoading(true);
     try {
-      const entries = await getAllDiaryEntries(user.id);
+      const [entries, insights] = await Promise.all([
+        getAllDiaryEntries(user.id),
+        getAllWeeklyInsights(user.id)
+      ]);
       setAllEntries(entries);
+      setWeeklyInsights(insights);
       setStep(100);
     } catch (err) {
       alert('리포트를 불러오는 중 오류: ' + err.message);
@@ -249,6 +256,22 @@ const DiaryMain = ({ user, userProfile, onLogout }) => {
               <p>📅 총 작성한 일기: <strong>{getReportData().totalCount}개</strong></p>
               <p>최근 자주 느낀 감정: <span style={{ fontSize: '24px' }}>{getReportData().mostCommonEmotion}</span></p>
             </div>
+              {weeklyInsights.length > 0 && (
+              <div style={{ marginTop: '16px', textAlign: 'left' }}>
+                <h4 style={{ color: '#6c5ce7', marginBottom: '10px' }}>💌 주간 인사이트</h4>
+                {weeklyInsights.map(i => (
+                  <div key={i.id} style={{ background: '#fff', padding: '14px', borderRadius: '12px', marginBottom: '10px', boxShadow: '0 2px 6px rgba(0,0,0,0.07)' }}>
+                    <p style={{ margin: '0 0 4px 0', fontSize: '11px', color: '#aaa' }}>
+                      {i.week_start} 주
+                    </p>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#444', lineHeight: 1.6 }}>
+                      {i.insight}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <button className="finish-btn" style={{ marginTop: '20px' }} onClick={() => setStep(0)}>메인으로 돌아가기</button>
           </div>
         </div>
